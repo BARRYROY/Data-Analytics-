@@ -1,0 +1,188 @@
+
+Multiple Linear Regression with sklearn 
+You are given a real estate dataset.
+
+Real estate is one of those examples that every regression course goes through as it is extremely easy to understand and there is a (almost always) certain causal relationship to be found.
+
+The data is located in the file: 'real_estate_price_size_year.csv'.
+
+You are expected to create a multiple linear regression (similar to the one in the lecture), using the new data.
+
+Apart from that, please:
+
+Display the intercept and coefficient(s)
+Find the R-squared and Adjusted R-squared
+Compare the R-squared and the Adjusted R-squared
+Compare the R-squared of this regression and the simple linear regression where only 'size' was used
+Using the model make a prediction about an apartment with size 750 sq.ft. from 2009
+Find the univariate (or multivariate if you wish - see the article) p-values of the two variables. What can you say about them?
+Create a summary table with your findings
+In this exercise, the dependent variable is 'price', while the independent variables are 'size' and 'year'.
+
+Good luck!
+
+Import the relevant libraries
+[3]:
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set()
+​
+from sklearn.linear_model import LinearRegression
+Load the data
+[4]:
+
+data = pd.read_csv('real_estate_price_size_year.csv')
+data.head()
+[4]:
+price	size	year
+0	234314.144	643.09	2015
+1	228581.528	656.22	2009
+2	281626.336	487.29	2018
+3	401255.608	1504.75	2015
+4	458674.256	1275.46	2009
+[8]:
+
+data.describe()
+[8]:
+price	size	year
+count	100.000000	100.000000	100.000000
+mean	292289.470160	853.024200	2012.600000
+std	77051.727525	297.941951	4.729021
+min	154282.128000	479.750000	2006.000000
+25%	234280.148000	643.330000	2009.000000
+50%	280590.716000	696.405000	2015.000000
+75%	335723.696000	1029.322500	2018.000000
+max	500681.128000	1842.510000	2018.000000
+Create the regression
+Declare the dependent and the independent variables
+[5]:
+
+x = data[['size', 'year']]
+y = data['price']
+[9]:
+
+x.shape
+[9]:
+(100, 2)
+[12]:
+
+y.shape
+[12]:
+(100,)
+Regression
+[13]:
+
+reg = LinearRegression()
+reg.fit(x,y)
+[13]:
+LinearRegression()
+Find the intercept
+[14]:
+
+reg.intercept_
+[14]:
+-5772267.017463281
+Find the coefficients
+[15]:
+
+reg.coef_
+[15]:
+array([ 227.70085401, 2916.78532684])
+Calculate the R-squared
+[24]:
+
+reg.score(x,y).round(4)
+[24]:
+0.7765
+Calculate the Adjusted R-squared
+Formula for Adjusted R^2
+
+𝑅2𝑎𝑑𝑗.=1−(1−𝑅2)∗𝑛−1𝑛−𝑝−1
+R
+a
+d
+j
+.
+2
+=
+1
+−
+(
+1
+−
+R
+2
+)
+∗
+n
+−
+1
+n
+−
+p
+−
+1
+ 
+
+[23]:
+
+r2 = reg.score(x,y)
+​
+n = x.shape[0]
+​
+p = x.shape[1]
+​
+adjusted_r2 = 1 - (1 - r2)*(n-1)/(n-p-1)
+​
+adjusted_r2.round(4)
+[23]:
+0.7719
+Compare the R-squared and the Adjusted R-squared
+Answer... adjusted R-squared < R-squared 0.7719 < 0.7765. This shows that the increase of variable had very little penalazitaion.
+
+Compare the Adjusted R-squared with the R-squared of the simple linear regression
+Answer... 0.7719 > 0.7447. 'Year' is not bringing any value to the data
+
+Making predictions
+
+Find the predicted price of an apartment that has a size of 750 sq.ft. from 2009.
+
+[30]:
+
+reg.predict([[750,2009]])
+[30]:
+array([258330.34465995])
+Calculate the univariate p-values of the variables
+[31]:
+
+from sklearn.feature_selection import f_regression
+[32]:
+
+f_regression(x,y)
+[32]:
+(array([285.92105192,   0.85525799]), array([8.12763222e-31, 3.57340758e-01]))
+[34]:
+
+p_values = f_regression(x,y)[1]
+[35]:
+
+p_values.round(3)
+[35]:
+array([0.   , 0.357])
+Create a summary table with your findings
+[36]:
+
+reg_summary = pd.DataFrame(data = x.columns.values, columns = ['Features'])
+reg_summary ['Coefficients'] = reg.coef_
+reg_summary ['P-values'] = p_values.round(3)
+reg_summary
+[36]:
+Features	Coefficients	P-values
+0	size	227.700854	0.000
+1	year	2916.785327	0.357
+Answer... The year is insignificant to the model, we should remove it(P-value > 0.05)
+
+
